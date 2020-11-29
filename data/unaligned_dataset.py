@@ -25,6 +25,7 @@ class UnalignedDataset(BaseDataset):
         """
         BaseDataset.__init__(self, opt)
         self.dir_A = os.path.join(opt.dataroot, opt.phase + 'A')  # create a path '/path/to/data/trainA'
+        # self.dir_A = opt.dataroot + "/" + opt.phase + 'A'
         self.dir_B = os.path.join(opt.dataroot, opt.phase + 'B')  # create a path '/path/to/data/trainB'
 
         if opt.phase == "test" and not os.path.exists(self.dir_A) \

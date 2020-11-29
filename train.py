@@ -7,6 +7,7 @@ from models import create_model
 import matplotlib
 import matplotlib.pyplot as plt
 from util import util
+import os
 
 
 def print_current_losses(epoch, iters, losses, t_comp, t_data):
@@ -41,6 +42,31 @@ def display_current_results(visuals, epoch, i, save_result):
             plt.imshow(image_numpy)
         plt.savefig("created/"+str(epoch)+"_epoch"+str(i)+".png")
         plt.close()
+
+
+def save_image(image_numpy, image_path, aspect_ratio=1.0):
+    """Save a numpy image to the disk
+    Parameters:
+        image_numpy (numpy array) -- input numpy array
+        image_path (str)          -- the path of the image
+    """
+    image_pil = Image.fromarray(image_numpy)
+    h, w, _ = image_numpy.shape
+
+    if aspect_ratio is None:
+        pass
+    elif aspect_ratio > 1.0:
+        image_pil = image_pil.resize((h, int(w * aspect_ratio)), Image.BICUBIC)
+    elif aspect_ratio < 1.0:
+        image_pil = image_pil.resize((int(h / aspect_ratio), w), Image.BICUBIC)
+    image_pil.save(image_path)
+
+
+def generate_next(visuals, i):
+    for label, image in visuals.items():
+        image_numpy = util.tensor2im(image)
+        img_path = os.path.join("datasets/output", '%.3d_image.png' % i)
+        util.save_image(image_numpy, img_path)
 
 
 if __name__ == '__main__':
@@ -83,9 +109,13 @@ if __name__ == '__main__':
                 model.parallelize()
             model.set_input(data)  # unpack data from dataset and apply preprocessing
             model.optimize_parameters()   # calculate loss functions, get gradients, update network weights
+
             if len(opt.gpu_ids) > 0:
                 torch.cuda.synchronize()
             optimize_time = (time.time() - optimize_start_time) / batch_size * 0.005 + 0.995 * optimize_time
+
+            if epoch == opt.n_epochs + opt.n_epochs_decay:
+                generate_next(model.get_current_visuals(), i)
 
             if total_iters % opt.display_freq == 0:  # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0

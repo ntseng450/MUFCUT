@@ -5,6 +5,7 @@ from pathlib import Path
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--dir', default='road2icy/trainB/')
+arg_parser.add_argument('--output_dir', default='road2icy-64/trainB/')
 arg_parser.add_argument('--size', default=256, type=int)
 opt = arg_parser.parse_args()
 
@@ -12,8 +13,7 @@ opt = arg_parser.parse_args()
 def resize(opt):
     path = opt.dir
     dirs = os.listdir( path )
-    output_dir = opt.dir[:-1]
-    output_dir = Path(output_dir + "-" + str(opt.size)) / "trainA"
+    output_dir = Path(opt.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     i = 0
     print(str(output_dir))
