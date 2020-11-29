@@ -3,10 +3,48 @@ import torch
 from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
-from util.visualizer import Visualizer
+# from util.visualizer import Visualizer
+import matplotlib
+import matplotlib.pyplot as plt
+from util import util
+
+
+def print_current_losses(epoch, iters, losses, t_comp, t_data):
+    """print current losses on console; also save the losses to the disk
+    Parameters:
+        epoch (int) -- current epoch
+        iters (int) -- current training iteration during this epoch (reset to 0 at the end of every epoch)
+        losses (OrderedDict) -- training losses stored in the format of (name, float) pairs
+        t_comp (float) -- computational time per data point (normalized by batch_size)
+        t_data (float) -- data loading time per data point (normalized by batch_size)
+    """
+    message = '(epoch: %d, iters: %d, time: %.3f, data: %.3f) ' % (epoch, iters, t_comp, t_data)
+    for k, v in losses.items():
+        message += '%s: %.3f ' % (k, v)
+
+    print(message)  # print the message
+    # with open(self.log_name, "a") as log_file:
+    #     log_file.write('%s\n' % message)  # save the message
+
+
+def display_current_results(visuals, epoch, i, save_result):
+    fig = plt.figure()
+    ncols = 4
+    if ncols > 0:        # show all the images in one visdom panel
+        ncols = min(ncols, len(visuals))
+        idx = 0
+        for label, image in visuals.items():
+            image_numpy = util.tensor2im(image)
+            subplot_fig = fig.add_subplot(1, ncols, idx+1)
+            subplot_fig.set_title(label)
+            idx += 1
+            plt.imshow(image_numpy)
+        plt.savefig("created/"+str(epoch)+"_epoch"+str(i)+".png")
+        plt.close()
 
 
 if __name__ == '__main__':
+    matplotlib.use('TkAgg')
     opt = TrainOptions().parse()   # get training options
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     dataset_size = len(dataset)    # get the number of images in the dataset.
@@ -14,8 +52,8 @@ if __name__ == '__main__':
     model = create_model(opt)      # create a model given opt.model and other options
     print('The number of training images = %d' % dataset_size)
 
-    visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
-    opt.visualizer = visualizer
+    # visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
+    # opt.visualizer = visualizer
     total_iters = 0                # the total number of training iterations
 
     optimize_time = 0.1
@@ -25,7 +63,7 @@ if __name__ == '__main__':
         epoch_start_time = time.time()  # timer for entire epoch
         iter_data_time = time.time()    # timer for data loading per iteration
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
-        visualizer.reset()              # reset the visualizer: make sure it saves the results to HTML at least once every epoch
+        # visualizer.reset()              # reset the visualizer: make sure it saves the results to HTML at least once every epoch
 
         dataset.set_epoch(epoch)
         for i, data in enumerate(dataset):  # inner loop within one epoch
@@ -49,16 +87,18 @@ if __name__ == '__main__':
                 torch.cuda.synchronize()
             optimize_time = (time.time() - optimize_start_time) / batch_size * 0.005 + 0.995 * optimize_time
 
-            if total_iters % opt.display_freq == 0:   # display images on visdom and save images to a HTML file
+            if total_iters % opt.display_freq == 0:  # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0
                 model.compute_visuals()
-                visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                # visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                display_current_results(model.get_current_visuals(), epoch, i, save_result)
 
             if total_iters % opt.print_freq == 0:    # print training losses and save logging information to the disk
                 losses = model.get_current_losses()
-                visualizer.print_current_losses(epoch, epoch_iter, losses, optimize_time, t_data)
-                if opt.display_id is None or opt.display_id > 0:
-                    visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
+                # visualizer.print_current_losses(epoch, epoch_iter, losses, optimize_time, t_data)
+                print_current_losses(epoch, epoch_iter, losses, optimize_time, t_data)
+                # if opt.display_id is None or opt.display_id > 0:
+                    # visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
             if total_iters % opt.save_latest_freq == 0:   # cache our latest model every <save_latest_freq> iterations
                 print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
