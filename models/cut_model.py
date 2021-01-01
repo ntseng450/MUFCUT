@@ -200,7 +200,7 @@ class CUTModel(BaseModel):
         self.loss_SSIM = self.calculate_SSIM_loss(self.real_A, self.fake_B)
 
         self.loss_G = self.loss_G_GAN + loss_NCE_both + self.loss_SSIM
-        print("Loss G: ", self.loss_G_GAN.item(), " | Loss NCE: ", loss_NCE_both.item(), " | Loss SSIM: ", self.loss_SSIM.item())
+        # print("Loss G: ", self.loss_G_GAN.item(), " | Loss NCE: ", loss_NCE_both.item(), " | Loss SSIM: ", self.loss_SSIM.item())
         return self.loss_G
 
     def calculate_NCE_loss(self, src, tgt):
