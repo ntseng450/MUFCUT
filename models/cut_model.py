@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+from torch.autograd import Variable
+import pytorch_ssim
 from .base_model import BaseModel
 from . import networks
 from .patchnce import PatchNCELoss
@@ -90,6 +92,9 @@ class CUTModel(BaseModel):
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2))
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
+
+            # NN Changes
+            self.criterionSSIM = pytorch_ssim.SSIM(window_size = 11)
 
     def data_dependent_initialize(self, data):
         """
@@ -192,7 +197,10 @@ class CUTModel(BaseModel):
         else:
             loss_NCE_both = self.loss_NCE
 
-        self.loss_G = self.loss_G_GAN + loss_NCE_both
+        self.loss_SSIM = self.calculate_SSIM_loss(self.real_A, self.fake_B)
+
+        self.loss_G = self.loss_G_GAN + loss_NCE_both + self.loss_SSIM
+        print("Loss G: ", self.loss_G_GAN.item(), " | Loss NCE: ", loss_NCE_both.item(), " | Loss SSIM: ", self.loss_SSIM.item())
         return self.loss_G
 
     def calculate_NCE_loss(self, src, tgt):
@@ -212,3 +220,11 @@ class CUTModel(BaseModel):
             total_nce_loss += loss.mean()
 
         return total_nce_loss / n_layers
+
+    def calculate_SSIM_loss(self, original_src, generated):
+        src = Variable(original_src, requires_grad=False)
+        fake = Variable(generated, requires_grad=True)
+        
+        ssim = 1 - self.criterionSSIM(src, fake)
+        return ssim 
+
