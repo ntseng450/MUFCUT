@@ -45,25 +45,25 @@ class UnalignedDataset(BaseDataset):
         # random scaling. Still, we design the data loader such that the
         # amount of scaling is the same within a minibatch. To do this,
         # we precompute the random scaling values, and repeat them by |batch_size|.
-        # self.zoom_levels_A = np.empty()
-        # self.zoom_levels_B = np.empty()
-        # for i in range(self.A_size):
-        #     A_zoom = 1 / self.opt.random_scale_max
-        #     zoom_levels_A = np.random.uniform(A_zoom, 1.0, size=((len(self) // self.A_size) // opt.batch_size + 1, 1, 2))
-        #     self.zoom_levels_A.append(np.reshape(np.tile(zoom_levels_A, (1, opt.batch_size, 1)), [-1, 2]))
+        self.zoom_levels_A = np.empty()
+        self.zoom_levels_B = np.empty()
+        for i in range(self.A_size):
+            A_zoom = 1 / self.opt.random_scale_max
+            zoom_levels_A = np.random.uniform(A_zoom, 1.0, size=((len(self) // self.A_size) // opt.batch_size + 1, 1, 2))
+            self.zoom_levels_A.append(np.reshape(np.tile(zoom_levels_A, (1, opt.batch_size, 1)), [-1, 2]))
 
-        # for i in range(self.B_size):
-        #     B_zoom = 1 / self.opt.random_scale_max
-        #     zoom_levels_B = np.random.uniform(B_zoom, 1.0, size=((len(self) // self.B_size) // opt.batch_size + 1, 1, 2))
-        #     self.zoom_levels_B.append(np.reshape(np.tile(zoom_levels_B, (1, opt.batch_size, 1)), [-1, 2]))
+        for i in range(self.B_size):
+            B_zoom = 1 / self.opt.random_scale_max
+            zoom_levels_B = np.random.uniform(B_zoom, 1.0, size=((len(self) // self.B_size) // opt.batch_size + 1, 1, 2))
+            self.zoom_levels_B.append(np.reshape(np.tile(zoom_levels_B, (1, opt.batch_size, 1)), [-1, 2]))
 
-        # # While the crop locations are randomized, the negative samples should
-        # # not come from the same location. To do this, we precompute the
-        # # crop locations with no repetition.
-        # self.patch_indices_A = list(range(len(self)))
-        # random.shuffle(self.patch_indices_A)
-        # self.patch_indices_B = list(range(len(self)))
-        # random.shuffle(self.patch_indices_B)
+        # While the crop locations are randomized, the negative samples should
+        # not come from the same location. To do this, we precompute the
+        # crop locations with no repetition.
+        self.patch_indices_A = list(range(len(self)))
+        random.shuffle(self.patch_indices_A)
+        self.patch_indices_B = list(range(len(self)))
+        random.shuffle(self.patch_indices_B)
 
         # END EDITS NICK AND NATHAN
 
