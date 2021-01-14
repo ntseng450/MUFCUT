@@ -9,7 +9,6 @@ import util.util as util
 class UnalignedDataset(BaseDataset):
     """
     This dataset class can load unaligned/unpaired datasets.
-
     It requires two directories to host training images from domain A '/path/to/data/trainA'
     and from domain B '/path/to/data/trainB' respectively.
     You can train the model with the dataset flag '--dataroot /path/to/data'.
@@ -19,7 +18,6 @@ class UnalignedDataset(BaseDataset):
 
     def __init__(self, opt):
         """Initialize this dataset class.
-
         Parameters:
             opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
@@ -39,10 +37,8 @@ class UnalignedDataset(BaseDataset):
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
-
         Parameters:
             index (int)      -- a random integer for data indexing
-
         Returns a dictionary that contains A, B, A_paths and B_paths
             A (tensor)       -- an image in the input domain
             B (tensor)       -- its corresponding image in the target domain
@@ -72,7 +68,6 @@ class UnalignedDataset(BaseDataset):
 
     def __len__(self):
         """Return the total number of images in the dataset.
-
         As we have two datasets with potentially different number of images,
         we take a maximum of
         """
