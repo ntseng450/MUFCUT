@@ -48,6 +48,7 @@ class CUTModel(BaseModel):
         # Set default parameters for CUT and FastCUT
         if opt.CUT_mode.lower() == "cut":
             parser.set_defaults(nce_idt=True, lambda_NCE=1.0)
+            # parser.set_defaults(lambda_SSIM=1.0, lambda_RMSE=0.0)
         elif opt.CUT_mode.lower() == "fastcut":
             parser.set_defaults(
                 nce_idt=False, lambda_NCE=10.0, flip_equivariance=True,
@@ -238,7 +239,7 @@ class CUTModel(BaseModel):
         fake = Variable(generated, requires_grad=True)
         
         ssim = 1 - self.criterionSSIM(src, fake)
-        ssim = ssim * self.lambda_SSIM
+        ssim = ssim * self.opt.lambda_SSIM
         return ssim 
 
     def calculate_RMSE_loss(self, original_src, generated):
