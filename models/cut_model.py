@@ -244,5 +244,5 @@ class CUTModel(BaseModel):
 
     def calculate_RMSE_loss(self, original_src, generated):
         rmse = torch.sqrt(self.criterionRMSE(original_src, generated))
-        rmse = rmse * self.lambda_RMSE
+        rmse = rmse * self.opt.lambda_RMSE
         return rmse

@@ -1,3 +1,19 @@
+Traceback (most recent call last):
+  File "train.py", line 75, in <module>
+    dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
+  File "/mufcut/data/__init__.py", line 57, in create_dataset
+    data_loader = CustomDatasetDataLoader(opt)
+  File "/mufcut/data/__init__.py", line 73, in __init__
+    self.dataset = dataset_class(opt)
+  File "/mufcut/data/singleimage_dataset.py", line 35, in __init__
+    self.A_size = len(self.A_paths)  # get the size of dataset A
+AttributeError: 'SingleImageDataset' object has no attribute 'A_paths'
+I have no name!@emberspirit:/mufcut$ 
+
+
+
+
+
 (801, 2)
 [[0.70252826 0.62272167]
  [0.70252826 0.62272167]
