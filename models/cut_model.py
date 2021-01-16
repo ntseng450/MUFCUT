@@ -25,6 +25,8 @@ class CUTModel(BaseModel):
 
         parser.add_argument('--lambda_GAN', type=float, default=1.0, help='weight for GAN loss：GAN(G(X))')
         parser.add_argument('--lambda_NCE', type=float, default=1.0, help='weight for NCE loss: NCE(G(X), X)')
+        parser.add_argument('--lambda_SSIM', type=float, default=1.0, help='weight for SSIM loss: SSIM(G(X), X)')
+        parser.add_argument('--lambda_RMSE', type=float, default=0.0, help='weight for RMSE loss: RMSE(G(X), X)')
         parser.add_argument('--nce_idt', type=util.str2bool, nargs='?', const=True, default=False, help='use NCE loss for identity mapping: NCE(G(Y), Y))')
         parser.add_argument('--nce_layers', type=str, default='0,4,8,12,16', help='compute NCE loss on which layers')
         parser.add_argument('--nce_includes_all_negatives_from_minibatch',
@@ -60,7 +62,7 @@ class CUTModel(BaseModel):
 
         # specify the training losses you want to print out.
         # The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'D_real', 'D_fake', 'G', 'NCE']
+        self.loss_names = ['G_GAN', 'D_real', 'D_fake', 'G', 'NCE', 'SSIM', 'RMSE']
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         self.nce_layers = [int(i) for i in self.opt.nce_layers.split(',')]
 
@@ -95,6 +97,7 @@ class CUTModel(BaseModel):
 
             # NN Changes
             self.criterionSSIM = pytorch_ssim.SSIM(window_size = 11)
+            self.criterionRMSE = nn.MSELoss()
 
     def data_dependent_initialize(self, data):
         """
@@ -197,9 +200,17 @@ class CUTModel(BaseModel):
         else:
             loss_NCE_both = self.loss_NCE
 
-        self.loss_SSIM = self.calculate_SSIM_loss(self.real_A, self.fake_B)
+        if self.opt.lambda_SSIM > 0.0:
+            self.loss_SSIM = self.calculate_SSIM_loss(self.real_A, self.fake_B)
+        else:
+            self.loss_SSIM = 0.0
 
-        self.loss_G = self.loss_G_GAN + loss_NCE_both + self.loss_SSIM
+        if self.opt.lambda_RMSE > 0.0:
+            self.loss_RMSE = self.calculate_RMSE_loss(self.real_A, self.fake_B)
+        else:
+            self.loss_RMSE = 0.0
+
+        self.loss_G = self.loss_G_GAN + loss_NCE_both + self.loss_SSIM + self.loss_RMSE
         # print("Loss G: ", self.loss_G_GAN.item(), " | Loss NCE: ", loss_NCE_both.item(), " | Loss SSIM: ", self.loss_SSIM.item())
         return self.loss_G
 
@@ -226,5 +237,10 @@ class CUTModel(BaseModel):
         fake = Variable(generated, requires_grad=True)
         
         ssim = 1 - self.criterionSSIM(src, fake)
+        ssim = ssim * self.lambda_SSIM
         return ssim 
 
+    def calculate_RMSE_loss(self, original_src, generated):
+        rmse = torch.sqrt(self.criterionRMSE(original_src, generated))
+        rmse = rmse * self.lambda_RMSE
+        return rmse
