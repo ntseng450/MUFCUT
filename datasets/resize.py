@@ -3,6 +3,7 @@ import os, sys
 import argparse
 from pathlib import Path
 
+
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--dir', default='road2icy/trainB/')
 arg_parser.add_argument('--output_dir', default='road2icy-64/trainB/')

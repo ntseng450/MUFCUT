@@ -62,19 +62,19 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0):
     image_pil.save(image_path)
 
 
-def generate_next(visuals, i):
+def generate_next_A(visuals, layer_num):
+    for label, image in visuals.items():
+        if label == "fake_B":
+            file_path = os.path.join("datasets/layer"+str(layer_num), )
+
+
     for label, image in visuals.items():
         image_numpy = util.tensor2im(image)
         img_path = os.path.join("datasets/output", '%.3d_image.png' % i)
         util.save_image(image_numpy, img_path)
 
 
-if __name__ == '__main__':
-    # matplotlib.use('TkAgg')
-    opt = TrainOptions().parse()   # get training options
-    dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
-    dataset_size = len(dataset)    # get the number of images in the dataset.
-
+def train_layer(opt):
     model = create_model(opt)      # create a model given opt.model and other options
     print('The number of training images = %d' % dataset_size)
 
@@ -145,3 +145,13 @@ if __name__ == '__main__':
 
         print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.n_epochs + opt.n_epochs_decay, time.time() - epoch_start_time))
         model.update_learning_rate()                     # update learning rates at the end of every epoch.
+
+
+
+if __name__ == '__main__':
+    # matplotlib.use('TkAgg')
+    opt = TrainOptions().parse()   # get training options
+    dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
+    dataset_size = len(dataset)    # get the number of images in the dataset.
+
+    
